@@ -1,0 +1,41 @@
+{
+  "name": "remotion-annotate",
+  "version": "0.1.0",
+  "description": "Click-to-edit visual overlay for Remotion Studio. Select any element in the preview, tweak props/text visually, annotate for your AI agent, and edit the source directly.",
+  "type": "module",
+  "main": "src/index.mjs",
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "remotion",
+    "remotion-plugin",
+    "studio",
+    "overlay",
+    "annotate",
+    "visual-editor",
+    "click-to-edit",
+    "agentation"
+  ],
+  "scripts": {
+    "check": "node --check src/index.mjs && node --check src/bridge.mjs && node --check src/ast.mjs && node --check src/overlay.js && node --check src/studio-hooks.js && echo ok"
+  },
+  "dependencies": {
+    "@babel/core": ">=7.20.0",
+    "@babel/generator": ">=7.20.0",
+    "@babel/traverse": ">=7.20.0"
+  },
+  "peerDependencies": {
+    "@remotion/cli": ">=4.0.0",
+    "remotion": ">=4.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}
