@@ -3,6 +3,15 @@
   "version": "0.1.0",
   "description": "Click-to-edit visual overlay for Remotion Studio. Select any element in the preview, tweak props/text visually, annotate for your AI agent, and edit the source directly.",
   "type": "module",
+  "author": "Alan Lucena",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Alan-Lucena/remotion-annotate.git"
+  },
+  "homepage": "https://github.com/Alan-Lucena/remotion-annotate#readme",
+  "bugs": {
+    "url": "https://github.com/Alan-Lucena/remotion-annotate/issues"
+  },
   "main": "src/index.mjs",
   "exports": {
     ".": "./src/index.mjs"
