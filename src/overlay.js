@@ -98,6 +98,11 @@
       if (typeof a.target.frame === "number") L.push(`- **Frame:** ${a.target.frame}`);
       return L.join("\n");
     }
+    if (a.kind === "timeRange") {
+      return [`### ${a.message}`, "",
+        `- **Type:** time range (applies to this span of the video)`,
+        `- **Range:** frames ${a.target.frame}–${a.target.toFrame}`].join("\n");
+    }
     if (a.kind === "multi") {
       const L = [`### ${a.message}`, "", `- **Type:** applies to ${a.targets?.length || 0} elements:`];
       (a.targets || []).forEach((t) => L.push(`  - \`${t.loc || t.selector}\`${t.text ? ` — "${t.text}"` : ""}`));
@@ -126,7 +131,7 @@
     settings: false, marker: "#3b82f6", clearOnSend: false, block: true, components: false,
     editPick: null, editOrig: "", propsPick: null,
     multi: [], multiPending: false, regionMode: false, regionDraw: null, regionPending: null,
-    editAnnId: null,
+    editAnnId: null, range: null, rangePending: null,
   };
 
   // ---------- shadow UI ----------
@@ -145,6 +150,7 @@
     gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.82 1.17V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 7.6 19a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 3.09 14H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 5 7.6a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 3.09V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 15 5a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 20.91 10H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/>',
     x: '<path d="M18 6 6 18"/><path d="M6 6l12 12"/>',
     undo: '<path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10H9"/>',
+    key: '<path d="M12 3l7 9-7 9-7-9z"/>',
     sliders: '<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>',
     fab: '<path d="M3 6h13"/><path d="M3 12h8"/><path d="M3 18h11"/><path d="M19 13l1 2.5L22.5 17 20 18l-1 2.5L18 18l-2.5-1L18 15.5Z"/>',
   };
@@ -209,6 +215,7 @@
     .item .d{float:right;color:#6b7280;cursor:pointer}
     .item .e{float:right;color:#9ca3af;cursor:pointer;margin-right:10px}.item .e:hover{color:#fff}
     .toast{position:fixed;bottom:82px;left:50%;transform:translateX(-50%);background:#111;color:#fff;font-size:13px;font-weight:600;padding:9px 16px;border-radius:11px;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.5);border:1px solid #2c2c2e}
+    .rchip{position:fixed;bottom:112px;left:50%;transform:translateX(-50%);background:#111;color:#f59e0b;font-size:13px;font-weight:700;font-family:ui-monospace,monospace;padding:8px 14px;border-radius:11px;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.5);border:1px solid #f59e0b55}
     .dot{width:8px;height:8px;border-radius:50%;background:#ef4444;margin:0 4px;flex:none;box-shadow:0 0 6px #ef4444}
     .dot.on{background:#22c55e;box-shadow:0 0 6px #22c55e}
     .props{position:fixed;width:30px;height:30px;border-radius:50%;color:#fff;border:2px solid #fff;display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:auto;box-shadow:0 4px 14px rgba(0,0,0,.35);background:#7c3aed}
@@ -264,6 +271,7 @@
   </div>
   <div class="bar hide" id="bar">
     ${tbtn("bLayout", ICONS.layout, "Region mode (drag a box)")}
+    ${tbtn("bRange", ICONS.key, "Time range: click to set start, move the playhead, click again (I/O)")}
     ${tbtn("bEye", ICONS.eye, "Show/hide marks")}
     ${tbtn("bUndo", ICONS.undo, "Undo last change (⌘Z)")}
     ${tbtn("bCopy", ICONS.copy, "Copy for agent")}
@@ -274,6 +282,7 @@
     ${tbtn("bX", ICONS.x, "Close")}
   </div>
   <div class="toast hide" id="toast"></div>
+  <div class="rchip hide" id="rchip"></div>
   <button class="fab" id="fab" title="Annotate">${svg(ICONS.fab, 22)}</button>`;
 
   const $ = (id) => root.getElementById(id);
@@ -347,13 +356,15 @@
     $("crumb").innerHTML = `<b>${friendly(pick.el)}:</b> ${pick.info.loc ? pick.info.loc.split("/").pop() : '"' + (pick.info.text || "").slice(0, 28) + '…"'}`;
     $("ta").value = ""; setTimeout(() => $("ta").focus(), 0);
   };
-  const closePanel = () => { S.selected = null; S.regionPending = null; S.multiPending = false; S.editAnnId = null; $("panel").classList.add("hide"); };
+  const closePanel = () => { S.selected = null; S.regionPending = null; S.multiPending = false; S.editAnnId = null; S.rangePending = null; $("panel").classList.add("hide"); };
   const renderList = () => {
     $("side").classList.toggle("hide", S.annotations.length === 0 || !S.open);
     $("list").innerHTML = S.annotations.map((a) => {
       const f = typeof a.target.frame === "number" ? a.target.frame : null;
-      return `<div class="item"><span class="d" data-id="${a.id}" title="borrar">✕</span><span class="e" data-id="${a.id}" title="editar">✎</span>
-        <div class="t">${f !== null ? `<span class="fr" data-frame="${f}" title="ir al frame ${f}">◷ ${f}</span> · ` : ""}${a.target.loc ? a.target.loc.split("/").pop() : a.target.selector}</div>
+      const to = typeof a.target.toFrame === "number" ? a.target.toFrame : null;
+      const chip = f !== null ? `<span class="fr" data-frame="${f}" title="go to frame ${f}">◷ ${f}${to !== null ? "→" + to : ""}</span> · ` : "";
+      return `<div class="item"><span class="d" data-id="${a.id}" title="delete">✕</span><span class="e" data-id="${a.id}" title="edit">✎</span>
+        <div class="t">${chip}${a.target.loc ? a.target.loc.split("/").pop() : a.target.selector}</div>
         <div class="m">${a.message.replace(/</g, "&lt;")}</div></div>`;
     }).join("");
     $("list").querySelectorAll(".d").forEach((d) => d.onclick = () => {
@@ -426,6 +437,11 @@
     if (S.editAnnId) {
       const a = S.annotations.find((x) => x.id === S.editAnnId);
       if (a) a.message = msg;
+      renderList(); persist(); closePanel(); return;
+    }
+    if (S.rangePending) {
+      S.annotations.push({ id: "a" + Date.now().toString(36), kind: "timeRange", createdAt: Date.now(), message: msg,
+        target: { loc: null, selector: `frames ${S.rangePending.from}-${S.rangePending.to}`, tag: "range", frame: S.rangePending.from, toFrame: S.rangePending.to } });
       renderList(); persist(); closePanel(); return;
     }
     if (S.regionPending) {
@@ -682,7 +698,7 @@
   };
   const doUndo = () => {
     bpost("/undo", {})
-      .then((d) => toast(d.undone ? `Cambio deshecho ✓ (${d.file})` : (d.reason || "Nothing to undo")))
+      .then((d) => toast(d.undone ? `Change undone ✓ (${d.file})` : (d.reason || "Nothing to undo")))
       .catch(() => toast("Bridge offline"));
   };
   $("bCopy").onclick = () => {
@@ -698,6 +714,51 @@
   $("bTrash").onclick = () => { S.annotations = []; renderList(); persist(); };
   $("bGear").onclick = () => { S.settings = !S.settings; $("set").classList.toggle("hide", !S.settings); };
   $("bLayout").onclick = () => setRegionMode(!S.regionMode);
+
+  // ---------- time-range annotation (keyframe-style: mark start, scrub Studio's
+  // own timeline, mark end) ----------
+  let rangeTimer = 0;
+  const armRange = () => {
+    const f = raFrame();
+    if (f == null) return toast("Frame unavailable — move the playhead first");
+    S.range = { from: f };
+    $("bRange").classList.add("on");
+    const chip = $("rchip");
+    chip.classList.remove("hide");
+    const tick = () => {
+      const c = raFrame();
+      chip.textContent = `◆ ${S.range.from} → ${c ?? "…"}`;
+    };
+    tick();
+    clearInterval(rangeTimer);
+    rangeTimer = setInterval(tick, 250);
+    toast("Range start set · move the playhead, then click ◆ again (or press O)");
+  };
+  const cancelRange = () => {
+    S.range = null;
+    clearInterval(rangeTimer);
+    $("bRange").classList.remove("on");
+    $("rchip").classList.add("hide");
+  };
+  const completeRange = () => {
+    if (!S.range) return;
+    const to = raFrame();
+    if (to == null) return toast("Frame unavailable");
+    let a = S.range.from, b = to;
+    if (b < a) [a, b] = [b, a];
+    cancelRange();
+    closePanel(); closeProps(); closeEdit();
+    S.rangePending = { from: a, to: b };
+    const p = $("panel");
+    p.classList.remove("hide");
+    p.style.left = innerWidth / 2 - 165 + "px";
+    p.style.top = "80px";
+    $("crumb").innerHTML = `<b>Range:</b> frames ${a} → ${b}`;
+    $("ta").value = "";
+    setTimeout(() => $("ta").focus(), 0);
+  };
+  $("bRange").onclick = () => (S.range ? completeRange() : armRange());
+
   $("bX").onclick = () => toggleOpen(false);
 
   $("sws").querySelectorAll(".sw").forEach((b) => b.onclick = () => {
@@ -715,7 +776,7 @@
     $("fab").classList.toggle("hide", v);
     $("set").classList.add("hide"); S.settings = false;
     setActive(v);
-    if (!v) { closePanel(); closeEdit(); closeProps(); clearMulti(); setRegionMode(false); showHover(null); }
+    if (!v) { closePanel(); closeEdit(); closeProps(); clearMulti(); setRegionMode(false); cancelRange(); showHover(null); }
     renderList();
   };
   $("fab").onclick = () => { S.hasLoc = !!document.querySelector("[data-loc]"); toggleOpen(true); };
@@ -760,8 +821,15 @@
     if (ae && (ae.isContentEditable || /^(input|textarea|select)$/i.test(ae.tagName))) return;
     if (e.key.toLowerCase() === "a" && !e.repeat) {
       e.stopImmediatePropagation(); S.open ? toggleOpen(false) : $("fab").click();
+    } else if (S.open && e.key.toLowerCase() === "i" && !e.repeat) {
+      e.stopImmediatePropagation(); armRange(); // set (or reset) range start, editor-style
+    } else if (S.open && e.key.toLowerCase() === "o" && !e.repeat) {
+      e.stopImmediatePropagation(); if (S.range) completeRange();
     } else if (e.key === "Escape" && S.open) {
-      e.stopImmediatePropagation(); S.selected ? closePanel() : toggleOpen(false);
+      e.stopImmediatePropagation();
+      if (S.range) cancelRange();
+      else if (S.selected) closePanel();
+      else toggleOpen(false);
     }
   };
   ["keydown", "keyup", "keypress"].forEach((t) => window.addEventListener(t, keyGuard, true));
