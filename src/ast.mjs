@@ -79,10 +79,10 @@ const isNegNumber = (n) =>
   n && n.type === "UnaryExpression" && n.operator === "-" && n.argument && n.argument.type === "NumericLiteral";
 
 function describe(path, key, node) {
-  if (!node) return { key, path, editable: false, reason: "sin valor" };
+  if (!node) return { key, path, editable: false, reason: "no value" };
   if (node.type === "NumericLiteral") {
     // color: 0xff0000 is a number we can't safely color-pick; leave it alone.
-    if (COLOR_KEYS.has(key)) return { key, path, editable: false, reason: "color numérico (hex int)" };
+    if (COLOR_KEYS.has(key)) return { key, path, editable: false, reason: "numeric color (hex int)" };
     return { key, path, editable: true, type: "number", value: node.value };
   }
   if (isNegNumber(node)) return { key, path, editable: true, type: "number", value: -node.argument.value };
@@ -95,10 +95,10 @@ function describe(path, key, node) {
     return out;
   }
   const reason =
-    node.type === "Identifier" || node.type === "MemberExpression" ? "constante o variable"
-      : node.type === "TemplateLiteral" ? "valor dinámico (template)"
-      : node.type === "CallExpression" ? "animado (interpolate/spring)"
-      : node.type === "ConditionalExpression" ? "condicional"
+    node.type === "Identifier" || node.type === "MemberExpression" ? "constant or variable"
+      : node.type === "TemplateLiteral" ? "dynamic value (template)"
+      : node.type === "CallExpression" ? "animated (interpolate/spring)"
+      : node.type === "ConditionalExpression" ? "conditional"
       : node.type;
   const out = { key, path, editable: false, reason };
   // a single value node we could force-replace with a literal (user opt-in)
@@ -124,7 +124,7 @@ export function classify(file, line, col, tag) {
     }
     if (attr.type !== "JSXAttribute") continue;
     if (attr.name.type !== "JSXIdentifier") {
-      attrs.push({ key: "(namespaced)", editable: false, reason: "atributo con namespace" });
+      attrs.push({ key: "(namespaced)", editable: false, reason: "namespaced attribute" });
       continue;
     }
     const name = attr.name.name;
@@ -137,20 +137,20 @@ export function classify(file, line, col, tag) {
           continue;
         }
         if (prop.computed) {
-          attrs.push({ key: "style.[computed]", editable: false, reason: "clave computada" });
+          attrs.push({ key: "style.[computed]", editable: false, reason: "computed key" });
           continue;
         }
         const k = prop.key.type === "Identifier" ? prop.key.name
           : prop.key.type === "StringLiteral" ? prop.key.value : null;
-        if (!k) { attrs.push({ key: "style.[?]", editable: false, reason: "clave no literal" }); continue; }
-        if (seen.has(k)) { attrs.push({ key: "style." + k, editable: false, reason: "clave duplicada" }); continue; }
+        if (!k) { attrs.push({ key: "style.[?]", editable: false, reason: "non-literal key" }); continue; }
+        if (seen.has(k)) { attrs.push({ key: "style." + k, editable: false, reason: "duplicate key" }); continue; }
         seen.add(k);
         attrs.push(describe("style." + k, k, prop.value));
       }
       continue;
     }
     let valNode = null;
-    if (v == null) { attrs.push({ key: name, path: name, editable: false, reason: "booleano" }); continue; }
+    if (v == null) { attrs.push({ key: name, path: name, editable: false, reason: "boolean" }); continue; }
     if (v.type === "StringLiteral") valNode = v;
     else if (v.type === "JSXExpressionContainer") valNode = v.expression;
     attrs.push(describe(name, name, valNode));
@@ -197,9 +197,9 @@ export function writeAttribute(file, line, col, attrPath, value, tag, opts = {})
   const code = fs.readFileSync(file, "utf8");
   const ast = parseFile(code, file);
   const elPath = findOpening(ast, line, col, tag);
-  if (!elPath) return { applied: false, reason: "elemento no encontrado" };
+  if (!elPath) return { applied: false, reason: "element not found" };
   const loc = locateValueNode(elPath.node, attrPath);
-  if (!loc) return { applied: false, reason: "atributo no encontrado" };
+  if (!loc) return { applied: false, reason: "attribute not found" };
   const node = loc.node;
   const asNumber = (v) => {
     const n = Number(v);
@@ -209,19 +209,19 @@ export function writeAttribute(file, line, col, attrPath, value, tag, opts = {})
   let serialized;
   if (node.type === "NumericLiteral" || isNegNumber(node)) {
     serialized = asNumber(value);
-    if (serialized == null) return { applied: false, reason: "valor no numérico" };
+    if (serialized == null) return { applied: false, reason: "not a number" };
   } else if (node.type === "StringLiteral") {
     serialized = asString(value);
   } else if (opts.force) {
     // overwrite the dynamic expression with a literal of the requested kind
     if (opts.kind === "number") {
       serialized = asNumber(value);
-      if (serialized == null) return { applied: false, reason: "valor no numérico" };
+      if (serialized == null) return { applied: false, reason: "not a number" };
     } else {
       serialized = asString(value);
     }
   } else {
-    return { applied: false, reason: "no es un literal editable" };
+    return { applied: false, reason: "not an editable literal" };
   }
   const next = code.slice(0, node.start) + serialized + code.slice(node.end);
   fs.writeFileSync(file, next);
@@ -237,11 +237,11 @@ export function editText(file, line, col, newText, tag) {
   const code = fs.readFileSync(file, "utf8");
   const ast = parseFile(code, file);
   const elPath = findOpening(ast, line, col, tag);
-  if (!elPath) return { applied: false, reason: "elemento no encontrado" };
+  if (!elPath) return { applied: false, reason: "element not found" };
   const jsxEl = elPath.parentPath && elPath.parentPath.node;
-  if (!jsxEl || jsxEl.type !== "JSXElement") return { applied: false, reason: "no es un elemento" };
+  if (!jsxEl || jsxEl.type !== "JSXElement") return { applied: false, reason: "not an element" };
   const textKids = jsxEl.children.filter((c) => c.type === "JSXText" && c.value.trim() !== "");
-  if (textKids.length !== 1) return { applied: false, reason: "no es texto simple" };
+  if (textKids.length !== 1) return { applied: false, reason: "not plain text" };
   const tnode = textKids[0];
   const lead = tnode.value.match(/^\s*/)[0];
   const trail = tnode.value.match(/\s*$/)[0];
@@ -256,17 +256,17 @@ export function removeElementByLoc(file, line, col, tag) {
   const code = fs.readFileSync(file, "utf8");
   const ast = parseFile(code, file);
   const elPath = findOpening(ast, line, col, tag);
-  if (!elPath) return { applied: false, reason: "elemento no encontrado" };
+  if (!elPath) return { applied: false, reason: "element not found" };
   const jsxEl = elPath.parentPath && elPath.parentPath.node;
   if (!jsxEl || (jsxEl.type !== "JSXElement" && jsxEl.type !== "JSXFragment")) {
-    return { applied: false, reason: "no es un elemento" };
+    return { applied: false, reason: "not an element" };
   }
   // Only safe to delete when the element is one of several JSX children, i.e. its
   // grandparent is a JSXElement/JSXFragment. If it's a return value, &&, ?:, map
   // callback, array item, etc., removing it would leave broken syntax.
   const gp = elPath.parentPath.parentPath && elPath.parentPath.parentPath.node;
   if (!gp || (gp.type !== "JSXElement" && gp.type !== "JSXFragment")) {
-    return { applied: false, reason: "no se puede borrar (es la única expresión de su contexto)" };
+    return { applied: false, reason: "cannot delete (it is the only expression in its context)" };
   }
   let end = jsxEl.end;
   const after = code.slice(end);

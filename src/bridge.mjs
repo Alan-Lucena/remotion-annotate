@@ -120,7 +120,7 @@ export function startBridge(targetDir, opts = {}) {
         try {
           const r = ast.writeAttribute(L.file, L.line, L.col, data.path, data.value, data.tag,
             { force: !!data.force, kind: data.kind });
-          if (r.applied) { pushUndo(L.file, r.prev, r.next); console.log(`[annotate] prop ${L.rel} ${data.path}=${data.value}${data.force ? " (forzado)" : ""}`); }
+          if (r.applied) { pushUndo(L.file, r.prev, r.next); console.log(`[annotate] prop ${L.rel} ${data.path}=${data.value}${data.force ? " (forced)" : ""}`); }
           json(res, { ok: true, applied: r.applied, file: L.rel, reason: r.reason });
         } catch (e) { json(res, { ok: false, applied: false, error: String(e) }, 500); }
       });
@@ -163,11 +163,11 @@ export function startBridge(targetDir, opts = {}) {
     // Undo the most recent direct text edit (revert the file), if it's safe.
     if (url === "/undo" && req.method === "POST") {
       const entry = undoStack.pop();
-      if (!entry) return res.end(JSON.stringify({ ok: true, undone: false, reason: "nada que deshacer" }));
+      if (!entry) return res.end(JSON.stringify({ ok: true, undone: false, reason: "nothing to undo" }));
       try {
         const current = fs.existsSync(entry.file) ? fs.readFileSync(entry.file, "utf8") : null;
         if (current !== entry.postContent) {
-          return res.end(JSON.stringify({ ok: true, undone: false, reason: "el archivo cambió desde la edición" }));
+          return res.end(JSON.stringify({ ok: true, undone: false, reason: "file changed since the edit" }));
         }
         fs.writeFileSync(entry.file, entry.prevContent);
         const rel = path.relative(TARGET_DIR, entry.file);

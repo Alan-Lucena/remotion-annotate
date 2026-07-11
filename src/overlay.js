@@ -93,13 +93,13 @@
   };
   const mdFor = (a) => {
     if (a.kind === "region") {
-      const R = a.target.region, L = [`### ${a.message}`, "", `- **Tipo:** región del canvas (agregar/colocar algo aquí)`];
-      if (R) L.push(`- **Zona:** x ${R.xPct}%, y ${R.yPct}%, ancho ${R.wPct}%, alto ${R.hPct}% (del área de contenido)`);
+      const R = a.target.region, L = [`### ${a.message}`, "", `- **Type:** canvas region (add/place something here)`];
+      if (R) L.push(`- **Area:** x ${R.xPct}%, y ${R.yPct}%, width ${R.wPct}%, height ${R.hPct}% (of the content area)`);
       if (typeof a.target.frame === "number") L.push(`- **Frame:** ${a.target.frame}`);
       return L.join("\n");
     }
     if (a.kind === "multi") {
-      const L = [`### ${a.message}`, "", `- **Tipo:** aplica a ${a.targets?.length || 0} elementos:`];
+      const L = [`### ${a.message}`, "", `- **Type:** applies to ${a.targets?.length || 0} elements:`];
       (a.targets || []).forEach((t) => L.push(`  - \`${t.loc || t.selector}\`${t.text ? ` — "${t.text}"` : ""}`));
       if (typeof a.target.frame === "number") L.push(`- **Frame:** ${a.target.frame}`);
       return L.join("\n");
@@ -126,6 +126,7 @@
     settings: false, marker: "#3b82f6", clearOnSend: false, block: true, components: false,
     editPick: null, editOrig: "", propsPick: null,
     multi: [], multiPending: false, regionMode: false, regionDraw: null, regionPending: null,
+    editAnnId: null,
   };
 
   // ---------- shadow UI ----------
@@ -206,6 +207,7 @@
     .mbar .mb.del{background:#3b1113;border-color:#5b1a1d;color:#fca5a5}
     .mbar .mb:hover{filter:brightness(1.2)}
     .item .d{float:right;color:#6b7280;cursor:pointer}
+    .item .e{float:right;color:#9ca3af;cursor:pointer;margin-right:10px}.item .e:hover{color:#fff}
     .toast{position:fixed;bottom:82px;left:50%;transform:translateX(-50%);background:#111;color:#fff;font-size:13px;font-weight:600;padding:9px 16px;border-radius:11px;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.5);border:1px solid #2c2c2e}
     .dot{width:8px;height:8px;border-radius:50%;background:#ef4444;margin:0 4px;flex:none;box-shadow:0 0 6px #ef4444}
     .dot.on{background:#22c55e;box-shadow:0 0 6px #22c55e}
@@ -233,8 +235,8 @@
   <div class="mbar hide" id="mbar"></div>
   <div class="tip hide" id="tip"></div>
   <button class="plus hide" id="plus">+</button>
-  <button class="pen hide" id="pen" title="Editar texto directo">✎</button>
-  <button class="props hide" id="props" title="Editar props/estilos">${svg(ICONS.sliders, 16)}</button>
+  <button class="pen hide" id="pen" title="Edit text">✎</button>
+  <button class="props hide" id="props" title="Edit props / styles">${svg(ICONS.sliders, 16)}</button>
   <div class="panel pp hide" id="ppanel">
     <div class="crumb"><b>Props</b>&nbsp;<span id="pcrumb"></span><span class="ghost" id="pclose" style="margin-left:auto;cursor:pointer">✕</span></div>
     <div class="pbody" id="pbody"></div>
@@ -245,9 +247,9 @@
     <div class="prow"><button class="ghost" id="cancel">Cancel</button><button class="primary" id="add">Add</button></div>
   </div>
   <div class="panel hide" id="epanel">
-    <div class="crumb"><b>Editar texto</b>&nbsp;<span id="ecrumb"></span></div>
+    <div class="crumb"><b>Edit text</b>&nbsp;<span id="ecrumb"></span></div>
     <input class="einput" id="eta" />
-    <div class="prow"><button class="ghost" id="ecancel">Cancelar</button><button class="primary" id="esave">Guardar (↵)</button></div>
+    <div class="prow"><button class="ghost" id="ecancel">Cancel</button><button class="primary" id="esave">Save (↵)</button></div>
   </div>
   <div class="side hide" id="side"><h3>Annotations <span class="clr" id="clr">Clear</span></h3><div id="list"></div></div>
   <div class="set hide" id="set">
@@ -261,19 +263,18 @@
     <label class="chk" id="chkClear"><i></i> Clear on copy/send</label>
   </div>
   <div class="bar hide" id="bar">
-    ${tbtn("bPause", ICONS.pause, "Pausar anotación")}
-    ${tbtn("bLayout", ICONS.layout, "Modo región (arrastra un recuadro)")}
-    ${tbtn("bEye", ICONS.eye, "Mostrar/ocultar marcas")}
-    ${tbtn("bUndo", ICONS.undo, "Deshacer último cambio (⌘Z)")}
-    ${tbtn("bCopy", ICONS.copy, "Enviar al agente")}
-    ${tbtn("bTrash", ICONS.trash, "Limpiar")}
-    ${tbtn("bGear", ICONS.gear, "Ajustes")}
+    ${tbtn("bLayout", ICONS.layout, "Region mode (drag a box)")}
+    ${tbtn("bEye", ICONS.eye, "Show/hide marks")}
+    ${tbtn("bUndo", ICONS.undo, "Undo last change (⌘Z)")}
+    ${tbtn("bCopy", ICONS.copy, "Copy for agent")}
+    ${tbtn("bTrash", ICONS.trash, "Clear")}
+    ${tbtn("bGear", ICONS.gear, "Settings")}
     <span class="dot" id="dot" title="Bridge"></span>
     <div class="sep"></div>
-    ${tbtn("bX", ICONS.x, "Cerrar")}
+    ${tbtn("bX", ICONS.x, "Close")}
   </div>
   <div class="toast hide" id="toast"></div>
-  <button class="fab" id="fab" title="Anotar">${svg(ICONS.fab, 22)}</button>`;
+  <button class="fab" id="fab" title="Annotate">${svg(ICONS.fab, 22)}</button>`;
 
   const $ = (id) => root.getElementById(id);
   root.host.style.setProperty("--mk", S.marker);
@@ -346,22 +347,33 @@
     $("crumb").innerHTML = `<b>${friendly(pick.el)}:</b> ${pick.info.loc ? pick.info.loc.split("/").pop() : '"' + (pick.info.text || "").slice(0, 28) + '…"'}`;
     $("ta").value = ""; setTimeout(() => $("ta").focus(), 0);
   };
-  const closePanel = () => { S.selected = null; S.regionPending = null; S.multiPending = false; $("panel").classList.add("hide"); };
+  const closePanel = () => { S.selected = null; S.regionPending = null; S.multiPending = false; S.editAnnId = null; $("panel").classList.add("hide"); };
   const renderList = () => {
     $("side").classList.toggle("hide", S.annotations.length === 0 || !S.open);
     $("list").innerHTML = S.annotations.map((a) => {
       const f = typeof a.target.frame === "number" ? a.target.frame : null;
-      return `<div class="item"><span class="d" data-id="${a.id}">✕</span>
+      return `<div class="item"><span class="d" data-id="${a.id}" title="borrar">✕</span><span class="e" data-id="${a.id}" title="editar">✎</span>
         <div class="t">${f !== null ? `<span class="fr" data-frame="${f}" title="ir al frame ${f}">◷ ${f}</span> · ` : ""}${a.target.loc ? a.target.loc.split("/").pop() : a.target.selector}</div>
         <div class="m">${a.message.replace(/</g, "&lt;")}</div></div>`;
     }).join("");
     $("list").querySelectorAll(".d").forEach((d) => d.onclick = () => {
       S.annotations = S.annotations.filter((a) => a.id !== d.dataset.id); renderList(); persist();
     });
+    $("list").querySelectorAll(".e").forEach((e) => e.onclick = () => openEditAnnotation(e.dataset.id));
     $("list").querySelectorAll(".fr").forEach((f) => f.onclick = () => {
       if (window.__raSeek) window.__raSeek(Number(f.dataset.frame));
-      else toast("seek no disponible");
+      else toast("seek unavailable");
     });
+  };
+  const openEditAnnotation = (id) => {
+    const a = S.annotations.find((x) => x.id === id);
+    if (!a) return;
+    S.editAnnId = id;
+    closeProps(); closeEdit();
+    const p = $("panel"); p.classList.remove("hide");
+    p.style.left = innerWidth / 2 - 165 + "px"; p.style.top = "80px";
+    $("crumb").innerHTML = `<b>Edit annotation:</b> ${a.target.loc ? a.target.loc.split("/").pop() : a.target.selector}`;
+    $("ta").value = a.message; setTimeout(() => { $("ta").focus(); $("ta").select(); }, 0);
   };
 
   // ---------- persistence ----------
@@ -411,14 +423,19 @@
   const add = () => {
     const msg = $("ta").value.trim();
     if (!msg) return;
+    if (S.editAnnId) {
+      const a = S.annotations.find((x) => x.id === S.editAnnId);
+      if (a) a.message = msg;
+      renderList(); persist(); closePanel(); return;
+    }
     if (S.regionPending) {
       S.annotations.push({ id: "a" + Date.now().toString(36), kind: "region", createdAt: Date.now(), message: msg,
-        target: { region: S.regionPending.rect, viewport: S.regionPending.viewport, frame: S.regionPending.frame, loc: null, selector: "(región)", tag: "region" } });
+        target: { region: S.regionPending.rect, viewport: S.regionPending.viewport, frame: S.regionPending.frame, loc: null, selector: "(region)", tag: "region" } });
       renderList(); persist(); closePanel(); return;
     }
     if (S.multiPending) {
       S.annotations.push({ id: "a" + Date.now().toString(36), kind: "multi", createdAt: Date.now(), message: msg,
-        targets: S.multi.map((p) => p.info), target: { loc: null, selector: `${S.multi.length} elementos`, tag: "multi", frame: raFrame() } });
+        targets: S.multi.map((p) => p.info), target: { loc: null, selector: `${S.multi.length} elements`, tag: "multi", frame: raFrame() } });
       renderList(); persist(); closePanel(); clearMulti(); return;
     }
     if (!S.selected) return;
@@ -436,7 +453,7 @@
     const bar = $("mbar");
     if (S.multi.length && S.open) {
       bar.classList.remove("hide");
-      bar.innerHTML = `<b>${S.multi.length}</b> seleccionados <button class="mb" id="mAnot">Anotar</button><button class="mb del" id="mDel">Eliminar</button><button class="mb" id="mClr">✕</button>`;
+      bar.innerHTML = `<b>${S.multi.length}</b> selected <button class="mb" id="mAnot">Annotate</button><button class="mb del" id="mDel">Delete</button><button class="mb" id="mClr">✕</button>`;
       $("mAnot").onclick = () => { S.multiPending = true; openMultiPanel(); };
       $("mDel").onclick = deleteMulti;
       $("mClr").onclick = clearMulti;
@@ -452,15 +469,15 @@
   const openMultiPanel = () => {
     const p = $("panel"); p.classList.remove("hide");
     p.style.left = innerWidth / 2 - 165 + "px"; p.style.top = "64px";
-    $("crumb").innerHTML = `<b>${S.multi.length} elementos:</b> una instrucción para todos`;
+    $("crumb").innerHTML = `<b>${S.multi.length} elements:</b> one instruction for all`;
     $("ta").value = ""; setTimeout(() => $("ta").focus(), 0);
   };
   const deleteMulti = () => {
     const locs = S.multi.map((p) => p.info.loc).filter(Boolean);
     const tags = S.multi.filter((p) => p.info.loc).map((p) => p.info.tag);
-    if (!locs.length) return toast("sin locs para borrar");
+    if (!locs.length) return toast("no locs to delete");
     bpost("/delete", { locs, tags })
-      .then((d) => toast(`Borrados ${d.deleted}${d.skipped ? ` (${d.skipped} omitidos)` : ""} ✓ · ⌘Z`))
+      .then((d) => toast(`Deleted ${d.deleted}${d.skipped ? ` (${d.skipped} skipped)` : ""} ✓ · ⌘Z`))
       .catch(() => toast("Bridge offline"));
     clearMulti();
   };
@@ -480,7 +497,7 @@
     $("bLayout").classList.toggle("on", v);
     showHover(null);
     if (!v) { $("rubber").classList.add("hide"); S.regionDraw = null; }
-    toast(v ? "Modo región: arrastra un recuadro" : "");
+    toast(v ? "Region mode: drag a box" : "");
   };
   const onRegionDown = (e) => {
     if (!S.active || !S.regionMode || host.contains(e.target)) return;
@@ -513,7 +530,7 @@
     const p = $("panel"); p.classList.remove("hide");
     p.style.left = Math.min(x, innerWidth - 350) + "px";
     p.style.top = Math.min(y + h + 8, innerHeight - 190) + "px";
-    $("crumb").innerHTML = `<b>Región${pct ? ` (${pct.xPct}%, ${pct.yPct}%)` : ""}:</b> ¿qué va aquí?`;
+    $("crumb").innerHTML = `<b>Region${pct ? ` (${pct.xPct}%, ${pct.yPct}%)` : ""}:</b> what goes here?`;
     $("ta").value = ""; setTimeout(() => $("ta").focus(), 0);
   };
 
@@ -537,11 +554,11 @@
     const newText = norm($("eta").value);
     closeEdit();
     S.hover = null; // text edit shifts lines: force a fresh hover before the next action
-    if (!newText) return toast("Texto vacío — no se guardó");
+    if (!newText) return toast("Empty text, not saved");
     if (newText === norm(oldText)) return; // unchanged
     bpost("/edit", { loc, oldText, newText, tag: pick.info.tag })
-      .then((d) => toast(d.applied ? "Texto cambiado ✓ · ⌘Z para deshacer" : "No encontré el texto exacto en el source"))
-      .catch(() => toast("Bridge offline — no se guardó"));
+      .then((d) => toast(d.applied ? "Text changed ✓ · ⌘Z to undo" : "Exact text not found in source"))
+      .catch(() => toast("Bridge offline, not saved"));
   };
 
   // ---------- visual prop editor ----------
@@ -591,28 +608,28 @@
     `<div class="prow2" data-path="${a.path}" data-type="${a.type}"><span class="k" title="${a.key}">${a.key}</span>${controlInner(a.type, a.value, a.options)}</div>`;
   const rowOff = (a) => {
     const force = a.forceType
-      ? `<span class="anot force" data-k="${a.key}" data-path="${a.path}" data-type="${a.forceType}"${a.options ? ` data-opts="${a.options.join(",")}"` : ""} title="reemplaza la expresión por un valor fijo">forzar</span>`
+      ? `<span class="anot force" data-k="${a.key}" data-path="${a.path}" data-type="${a.forceType}"${a.options ? ` data-opts="${a.options.join(",")}"` : ""} title="replaces the expression with a fixed value">force</span>`
       : "";
-    return `<div class="prow2 off"><span class="k" title="${a.key}">${a.key}</span><span class="why">${a.reason || ""}</span>${force}<span class="anot" data-k="${a.key}">anotar</span></div>`;
+    return `<div class="prow2 off"><span class="k" title="${a.key}">${a.key}</span><span class="why">${a.reason || ""}</span>${force}<span class="anot" data-k="${a.key}">annotate</span></div>`;
   };
 
   const renderProps = (data, pick) => {
     const body = $("pbody");
-    if (!data.found) { body.innerHTML = '<div class="phdr">elemento no encontrado en el source</div>'; return; }
+    if (!data.found) { body.innerHTML = '<div class="phdr">element not found in source</div>'; return; }
     const styles = pick.info.styles || {};
     const ed = data.attrs.filter((a) => a.editable);
     const off = data.attrs.filter((a) => !a.editable);
     let html = "";
     if (ed.length) html += '<div class="phdr">Editable</div>' + ed.map(rowEditable).join("");
-    else html += '<div class="phdr">sin props estáticas editables</div>';
+    else html += '<div class="phdr">no static editable props</div>';
     if (off.length) html += '<div class="phdr">No editable</div>' + off.map(rowOff).join("");
     body.innerHTML = html;
     const writer = (path, extra) => (value) =>
       bpost("/prop", { loc: pick.info.loc, path, value, tag: pick.info.tag, ...(extra || {}) })
-        .then((d) => toast(d.applied ? "Prop actualizada ✓ · ⌘Z deshace" : (d.reason || "no aplicada")))
+        .then((d) => toast(d.applied ? "Prop updated ✓ · ⌘Z to undo" : (d.reason || "not applied")))
         .catch(() => toast("Bridge offline"));
     body.querySelectorAll(".prow2[data-path]").forEach((row) => attachControl(row, row.dataset.type, writer(row.dataset.path)));
-    // "forzar": opt-in replace a dynamic value (variable/animation) with a fixed literal
+    // "force": opt-in replace a dynamic value (variable/animation) with a fixed literal
     body.querySelectorAll(".anot.force").forEach((f) => f.onclick = () => {
       const row = f.closest(".prow2");
       const { k: key, path, type } = f.dataset;
@@ -637,7 +654,7 @@
     p.style.left = Math.min(pick.rect.left, innerWidth - 350) + "px";
     p.style.top = Math.min(Math.max(12, pick.rect.top), innerHeight - 360) + "px";
     $("pcrumb").textContent = pick.info.loc.split("/").pop();
-    $("pbody").innerHTML = '<div class="phdr">cargando…</div>';
+    $("pbody").innerHTML = '<div class="phdr">loading…</div>';
     fetch(BRIDGE + "/element?loc=" + encodeURIComponent(pick.info.loc) + "&tag=" + encodeURIComponent(pick.info.tag || ""))
       .then((r) => r.json())
       .then((d) => { if (S.propsPick === pick) renderProps(d, pick); })
@@ -656,8 +673,7 @@
   $("cancel").onclick = closePanel;
   $("clr").onclick = () => { S.annotations = []; renderList(); persist(); };
 
-  const setActive = (v) => { S.active = v; $("bPause").classList.toggle("on", !v); if (!v) showHover(null); };
-  $("bPause").onclick = () => setActive(!S.active);
+  const setActive = (v) => { S.active = v; if (!v) showHover(null); };
   $("bEye").onclick = () => { const h = $("hl"); h.style.visibility = h.style.visibility === "hidden" ? "" : "hidden"; $("tip").style.visibility = h.style.visibility; };
   let toastT = 0;
   const toast = (msg) => {
@@ -666,16 +682,16 @@
   };
   const doUndo = () => {
     bpost("/undo", {})
-      .then((d) => toast(d.undone ? `Cambio deshecho ✓ (${d.file})` : (d.reason || "Nada que deshacer")))
+      .then((d) => toast(d.undone ? `Cambio deshecho ✓ (${d.file})` : (d.reason || "Nothing to undo")))
       .catch(() => toast("Bridge offline"));
   };
   $("bCopy").onclick = () => {
-    if (!S.annotations.length) return toast("Sin anotaciones");
+    if (!S.annotations.length) return toast("No annotations");
     const md = toMarkdown();
     persist();
     navigator.clipboard?.writeText(md)
-      .then(() => toast(`Markdown copiado (${S.annotations.length}) — pégalo al agente`))
-      .catch(() => toast("No se pudo copiar"));
+      .then(() => toast(`Markdown copied (${S.annotations.length}) — paste to your agent`))
+      .catch(() => toast("Copy failed"));
     if (S.clearOnSend) { S.annotations = []; renderList(); persist(); }
   };
   $("bUndo").onclick = doUndo;
@@ -754,7 +770,7 @@
   const setBridge = (ok) => {
     const d = $("dot");
     d.classList.toggle("on", ok);
-    d.title = ok ? "Bridge conectado" : "Bridge desconectado — corre: npm run dev:annotate";
+    d.title = ok ? "Bridge connected" : "Bridge disconnected — run: ANNOTATE=1 npx remotion studio";
   };
   const ping = () => fetch(BRIDGE + "/annotations", { method: "GET" })
     .then((r) => setBridge(r.ok)).catch(() => setBridge(false));
