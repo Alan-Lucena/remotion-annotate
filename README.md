@@ -17,6 +17,26 @@ It runs a small in-process bridge (so it never goes "offline" while Studio is up
 npm i -D remotion-annotate
 ```
 
+Or with yarn, pnpm, or bun.
+
+### Claude Code
+
+If you use Claude Code, you can set up remotion-annotate automatically with the `/remotion-annotate` skill. Install it:
+
+```bash
+npx skills add Alan-Lucena/remotion-annotate
+```
+
+Then in Claude Code:
+
+```
+/remotion-annotate
+```
+
+It detects your Remotion project, installs the package, wires it into `remotion.config.ts`, and adds a `dev:annotate` script.
+
+There is also `/remotion-annotate-apply`: it reads your pending annotations from `annotations.json`, applies each change to the source, and clears the queue.
+
 ## Enable
 
 In your `remotion.config.ts`:
