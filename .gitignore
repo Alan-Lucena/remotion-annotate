@@ -4,3 +4,5 @@ annotations.json
 .DS_Store
 .cache
 .agents
+.claude
+skills-lock.json
