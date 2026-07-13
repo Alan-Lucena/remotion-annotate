@@ -3,3 +3,4 @@ annotations.json
 *.log
 .DS_Store
 .cache
+.agents

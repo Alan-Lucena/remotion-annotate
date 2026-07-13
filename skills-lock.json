@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "remotion-annotate": {
+      "source": "Alan-Lucena/remotion-annotate",
+      "sourceType": "github",
+      "skillPath": "skills/remotion-annotate/SKILL.md",
+      "computedHash": "f743c6fa7326e0f0c0256b1a611ea7a9ff7cdb87105133f27fab490b4b11d836"
+    },
+    "remotion-annotate-apply": {
+      "source": "Alan-Lucena/remotion-annotate",
+      "sourceType": "github",
+      "skillPath": "skills/remotion-annotate-apply/SKILL.md",
+      "computedHash": "314c0dda7ecb726601f93168e25cdea7b02c05719169035813cf842c81157608"
+    }
+  }
+}
