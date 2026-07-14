@@ -6,3 +6,5 @@ annotations.json
 .agents
 .claude
 skills-lock.json
+demo/node_modules
+demo/out

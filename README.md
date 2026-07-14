@@ -1,7 +1,11 @@
 # remotion-annotate
 
 Click-to-edit visual overlay for [Remotion](https://remotion.dev) Studio, in the
-spirit of Agentation. Select any element in the preview and:
+spirit of [Agentation](https://agentation.com). Select any element in the preview and:
+
+![remotion-annotate demo](assets/demo.gif)
+
+<sub>This demo was rendered with Remotion itself — see [`demo/`](demo/).</sub>
 
 - **Tweak props visually**: sliders for numbers, color pickers, dropdowns for enums. Writes straight to your `.tsx` (surgical AST edit, no reformatting). Cmd+Z to undo.
 - **Edit text in place**: pencil on a text element, type, Enter. Direct to source.
