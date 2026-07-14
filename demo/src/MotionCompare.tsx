@@ -79,7 +79,7 @@ const Stage: React.FC<StageProps> = ({ t, animated }) => {
           transform: `scale(${(0.9 + 0.1 * fab) * fabScale})`,
         }}>
           <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={1.8} strokeLinecap="round">
-            <path d="M3 6h13" /><path d="M3 12h8" /><path d="M3 18h11" /><path d="M19 13l1 2.5L22.5 17 20 18l-1 2.5L18 18l-2.5-1L18 15.5Z" />
+            <path d="M6 4.5v14l12-7z" fill="#fff" strokeLinejoin="round" strokeWidth={2.5} /><path d="M17.7 5.3l1.65 5.05 5.05 1.65-5.05 1.65-1.65 5.05-1.65-5.05-5.05-1.65 5.05-1.65z" fill="#111" stroke="#111" strokeWidth={7} strokeLinejoin="round" /><path d="M17.7 5.3l1.65 5.05 5.05 1.65-5.05 1.65-1.65 5.05-1.65-5.05-5.05-1.65 5.05-1.65z" fill="#111" stroke="#fff" strokeWidth={1.8} />
           </svg>
         </div>
       )}

@@ -313,7 +313,7 @@ export const Demo: React.FC = () => {
             transform: `scale(${Math.max(0, fabIn)})`, boxShadow: "0 10px 30px rgba(0,0,0,.35)",
           }}>
             <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 6h13" /><path d="M3 12h8" /><path d="M3 18h11" /><path d="M19 13l1 2.5L22.5 17 20 18l-1 2.5L18 18l-2.5-1L18 15.5Z" />
+              <path d="M6 4.5v14l12-7z" fill="#fff" strokeLinejoin="round" strokeWidth={2.5} /><path d="M17.7 5.3l1.65 5.05 5.05 1.65-5.05 1.65-1.65 5.05-1.65-5.05-5.05-1.65 5.05-1.65z" fill="#111" stroke="#111" strokeWidth={7} strokeLinejoin="round" /><path d="M17.7 5.3l1.65 5.05 5.05 1.65-5.05 1.65-1.65 5.05-1.65-5.05-5.05-1.65 5.05-1.65z" fill="#111" stroke="#fff" strokeWidth={1.8} />
             </svg>
           </div>
         )}
@@ -340,7 +340,7 @@ export const Demo: React.FC = () => {
         {hoverOn && !popup1 && (
           <>
             <div style={{
-              position: "absolute", left: titleCx - 150 - W.x, top: titleY - 2 - W.y, width: 300, height: 58,
+              position: "absolute", left: titleCx - 150 - W.x, top: titleY + 3 - W.y, width: 300, height: 58,
               border: `1.5px solid ${BLUE}`, borderRadius: 8, background: `${BLUE}1c`, opacity: fadeIn(frame, 84),
             }} />
             <div style={{

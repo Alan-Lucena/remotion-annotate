@@ -152,7 +152,7 @@
     undo: '<path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10H9"/>',
     key: '<path d="M12 3l7 9-7 9-7-9z"/>',
     sliders: '<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>',
-    fab: '<path d="M3 6h13"/><path d="M3 12h8"/><path d="M3 18h11"/><path d="M19 13l1 2.5L22.5 17 20 18l-1 2.5L18 18l-2.5-1L18 15.5Z"/>',
+    fab: '<path d="M6 4.5v14l12-7z" fill="currentColor" stroke-linejoin="round" stroke-width="2.5"/><path d="M17.7 5.3l1.65 5.05 5.05 1.65-5.05 1.65-1.65 5.05-1.65-5.05-5.05-1.65 5.05-1.65z" fill="#111" stroke="#111" stroke-width="7" stroke-linejoin="round"/><path d="M17.7 5.3l1.65 5.05 5.05 1.65-5.05 1.65-1.65 5.05-1.65-5.05-5.05-1.65 5.05-1.65z" fill="#111" stroke="currentColor" stroke-width="1.8"/>',
   };
   const svg = (d, w = 18) => `<svg width="${w}" height="${w}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
   const tbtn = (id, d, title) => `<button class="ic" id="${id}" title="${title}">${svg(d)}</button>`;
