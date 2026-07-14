@@ -149,7 +149,12 @@ export const Demo: React.FC = () => {
   const msg1 = "Make this orange and bigger";
 
   const rangeArmed = frame >= 187 && frame < 222;
-  const playheadPct = interpolate(frame, [188, 214], [0.32, 0.66], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.inOut(Easing.quad) });
+  // shared range geometry: the amber band and the inserted ROADMAP block measure the same
+  const TL_W = W.w - 28 - 150 - 16;
+  const RANGE_FROM = 0.32;
+  const RANGE_TO = 0.56;
+  const RANGE_W = (RANGE_TO - RANGE_FROM) * TL_W;
+  const playheadPct = interpolate(frame, [188, 214], [RANGE_FROM, RANGE_TO], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.inOut(Easing.quad) });
   const rangeEnd = Math.round(interpolate(frame, [188, 214], [96, 210], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }));
   const popup2 = frame >= 224 && frame < 272;
   const msg2 = "Add a ROADMAP scene in this range";
@@ -285,13 +290,13 @@ export const Demo: React.FC = () => {
               ))}
             </div>
             <div style={{ position: "absolute", left: 150, top: 64, width: 210, height: 24, borderRadius: 5, background: "#1d4ed8" }} />
-            <div style={{ position: "absolute", left: 380, top: 64, width: 300 - 160 * insertP, height: 24, borderRadius: 5, background: "#1e40af" }} />
-            <div style={{ position: "absolute", left: 700 + 80 * insertP, top: 64, width: 260, height: 24, borderRadius: 5, background: "#1d4ed8" }} />
+            <div style={{ position: "absolute", left: 380, top: 64, width: 300 - 150 * insertP, height: 24, borderRadius: 5, background: "#1e40af" }} />
+            <div style={{ position: "absolute", left: 700 + (10 + RANGE_W + 10 - 160) * insertP, top: 64, width: 260, height: 24, borderRadius: 5, background: "#1d4ed8" }} />
             {/* new ROADMAP sequence: inserted on the main row between the 2nd and 3rd blocks */}
             {applied && (
               <div style={{
                 position: "absolute", top: 64, height: 24, borderRadius: 5, background: "#3b82f6",
-                left: 530, width: 240 * insertP,
+                left: 540, width: RANGE_W * insertP,
                 overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center",
                 boxShadow: "0 0 0 1.5px #93c5fd55",
               }}>
@@ -301,7 +306,7 @@ export const Demo: React.FC = () => {
             {/* playhead */}
             <div style={{
               position: "absolute", top: 6, bottom: 6, width: 2, background: "#ef4444",
-              left: 150 + playheadPct * (W.w - 28 - 150 - 16),
+              left: 150 + playheadPct * TL_W,
             }}>
               <div style={{ position: "absolute", top: -1, left: -5, width: 12, height: 10, background: "#ef4444", borderRadius: "3px 3px 6px 6px" }} />
             </div>
@@ -309,8 +314,8 @@ export const Demo: React.FC = () => {
             {frame >= 188 && frame < 272 && (
               <div style={{
                 position: "absolute", top: 6, bottom: 6, background: `${AMBER}26`, border: `1.5px dashed ${AMBER}`,
-                left: 150 + 0.32 * (W.w - 28 - 150 - 16),
-                width: (playheadPct - 0.32) * (W.w - 28 - 150 - 16),
+                left: 150 + RANGE_FROM * TL_W,
+                width: (playheadPct - RANGE_FROM) * TL_W,
               }} />
             )}
           </div>
