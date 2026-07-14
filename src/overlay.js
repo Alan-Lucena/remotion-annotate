@@ -161,8 +161,8 @@
   root.innerHTML = `
   <style>
     *{box-sizing:border-box;font-family:Inter,system-ui,-apple-system,sans-serif}
-    :host{--mk:#3b82f6}
-    .hl{position:fixed;border:1.5px solid var(--mk);border-radius:8px;background:color-mix(in srgb,var(--mk) 10%,transparent);pointer-events:none;transition:all 70ms ease-out}
+    :host{--mk:#3b82f6;--ease-out:cubic-bezier(0.23,1,0.32,1)}
+    .hl{position:fixed;border:1.5px solid var(--mk);border-radius:8px;background:color-mix(in srgb,var(--mk) 10%,transparent);pointer-events:none;transition:left 70ms var(--ease-out),top 70ms var(--ease-out),width 70ms var(--ease-out),height 70ms var(--ease-out)}
     .tip{position:fixed;background:#1c1c1e;color:#fff;font-size:13px;font-weight:500;padding:7px 11px;border-radius:9px;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.4);white-space:nowrap;max-width:380px;overflow:hidden;text-overflow:ellipsis}
     .tip b{color:#9ca3af;font-weight:600}
     .plus,.pen{position:fixed;width:30px;height:30px;border-radius:50%;color:#fff;border:2px solid #fff;display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:auto;box-shadow:0 4px 14px rgba(0,0,0,.35);line-height:1}
@@ -197,7 +197,7 @@
     .chk i{width:18px;height:18px;border-radius:5px;border:1.5px solid #4b4b4d;display:inline-block;flex:none}
     .chk.on i{background:var(--mk);border-color:var(--mk)}
     .tg{width:40px;height:23px;border-radius:12px;background:#3a3a3c;position:relative;cursor:pointer;flex:none}
-    .tg::after{content:"";position:absolute;top:2px;left:2px;width:19px;height:19px;border-radius:50%;background:#fff;transition:.15s}
+    .tg::after{content:"";position:absolute;top:2px;left:2px;width:19px;height:19px;border-radius:50%;background:#fff;transition:left 150ms var(--ease-out)}
     .tg.on{background:var(--mk)}.tg.on::after{left:19px}
     .side{position:fixed;top:18px;right:18px;width:280px;max-height:64vh;overflow:auto;background:#1c1c1e;border-radius:14px;pointer-events:auto;color:#e5e7eb;box-shadow:0 16px 40px rgba(0,0,0,.45)}
     .side h3{margin:0;padding:12px 14px;font-size:13px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #2c2c2e}
@@ -235,6 +235,31 @@
     .prow2 .anot{color:var(--mk);cursor:pointer;font-size:11px;flex:none}
     .prow2 .anot.force{color:#f59e0b;margin-right:8px}
     .crumb{cursor:move;user-select:none}
+
+    @keyframes ra-pop{from{opacity:0;transform:translateY(4px) scale(.96)}}
+    @keyframes ra-rise{from{opacity:0;transform:translateX(-50%) translateY(12px) scale(.97)}to{transform:translateX(-50%)}}
+    @keyframes ra-drop{from{opacity:0;transform:translateX(-50%) translateY(-12px)}to{transform:translateX(-50%)}}
+    @keyframes ra-fade{from{opacity:0}}
+    @keyframes ra-fab{from{opacity:0;transform:scale(.9)}}
+    @keyframes ra-btn{from{opacity:0;transform:scale(.92)}}
+    @keyframes ra-side{from{opacity:0;transform:translateX(8px)}}
+    .panel{animation:ra-pop 180ms var(--ease-out);transform-origin:top}
+    .set{animation:ra-rise 180ms var(--ease-out)}
+    .bar{animation:ra-rise 200ms var(--ease-out)}
+    .mbar{animation:ra-drop 180ms var(--ease-out)}
+    .toast{animation:ra-rise 160ms var(--ease-out);transition:opacity 130ms ease}
+    .toast.out{opacity:0}
+    .rchip{animation:ra-rise 160ms var(--ease-out)}
+    .side{animation:ra-side 200ms var(--ease-out)}
+    .fab{animation:ra-fab 200ms var(--ease-out)}
+    .plus,.pen,.props{animation:ra-btn 120ms var(--ease-out)}
+    .tband{animation:ra-fade 150ms ease-out}
+    .fab,.ic,.primary,.mb,.plus,.pen,.props{transition:background 150ms ease,transform 160ms var(--ease-out)}
+    .fab:active,.ic:active,.primary:active,.mb:active,.plus:active,.pen:active,.props:active{transform:scale(.97)}
+    @media (prefers-reduced-motion: reduce){
+      .panel,.set,.bar,.mbar,.toast,.rchip,.side,.fab,.plus,.pen,.props,.tband{animation:ra-fade 120ms ease-out}
+      .fab:active,.ic:active,.primary:active,.mb:active,.plus:active,.pen:active,.props:active{transform:none}
+    }
     .hide{display:none!important}
   </style>
   <div class="hl hide" id="hl"></div>
@@ -693,10 +718,16 @@
 
   const setActive = (v) => { S.active = v; if (!v) showHover(null); };
   $("bEye").onclick = () => { const h = $("hl"); h.style.visibility = h.style.visibility === "hidden" ? "" : "hidden"; $("tip").style.visibility = h.style.visibility; };
-  let toastT = 0;
+  let toastT = 0, toastT2 = 0;
   const toast = (msg) => {
-    const t = $("toast"); t.textContent = msg; t.classList.remove("hide");
-    clearTimeout(toastT); toastT = setTimeout(() => t.classList.add("hide"), 1800);
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.remove("hide", "out");
+    clearTimeout(toastT); clearTimeout(toastT2);
+    toastT = setTimeout(() => {
+      t.classList.add("out"); // fade out (130ms transition), then hide
+      toastT2 = setTimeout(() => t.classList.add("hide"), 140);
+    }, 1800);
   };
   const doUndo = () => {
     bpost("/undo", {})
