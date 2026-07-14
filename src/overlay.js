@@ -216,6 +216,7 @@
     .item .e{float:right;color:#9ca3af;cursor:pointer;margin-right:10px}.item .e:hover{color:#fff}
     .toast{position:fixed;bottom:82px;left:50%;transform:translateX(-50%);background:#111;color:#fff;font-size:13px;font-weight:600;padding:9px 16px;border-radius:11px;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.5);border:1px solid #2c2c2e}
     .rchip{position:fixed;bottom:112px;left:50%;transform:translateX(-50%);background:#111;color:#f59e0b;font-size:13px;font-weight:700;font-family:ui-monospace,monospace;padding:8px 14px;border-radius:11px;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.5);border:1px solid #f59e0b55}
+    .tband{position:fixed;background:rgba(245,158,11,.15);border:1.5px dashed #f59e0b;box-sizing:border-box;pointer-events:none;z-index:30}
     .dot{width:8px;height:8px;border-radius:50%;background:#ef4444;margin:0 4px;flex:none;box-shadow:0 0 6px #ef4444}
     .dot.on{background:#22c55e;box-shadow:0 0 6px #22c55e}
     .props{position:fixed;width:30px;height:30px;border-radius:50%;color:#fff;border:2px solid #fff;display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:auto;box-shadow:0 4px 14px rgba(0,0,0,.35);background:#7c3aed}
@@ -283,6 +284,7 @@
   </div>
   <div class="toast hide" id="toast"></div>
   <div class="rchip hide" id="rchip"></div>
+  <div class="tband hide" id="tband"></div>
   <button class="fab" id="fab" title="Annotate">${svg(ICONS.fab, 22)}</button>`;
 
   const $ = (id) => root.getElementById(id);
@@ -356,7 +358,7 @@
     $("crumb").innerHTML = `<b>${friendly(pick.el)}:</b> ${pick.info.loc ? pick.info.loc.split("/").pop() : '"' + (pick.info.text || "").slice(0, 28) + '…"'}`;
     $("ta").value = ""; setTimeout(() => $("ta").focus(), 0);
   };
-  const closePanel = () => { S.selected = null; S.regionPending = null; S.multiPending = false; S.editAnnId = null; S.rangePending = null; $("panel").classList.add("hide"); };
+  const closePanel = () => { S.selected = null; S.regionPending = null; S.multiPending = false; S.editAnnId = null; S.rangePending = null; stopBand(); $("panel").classList.add("hide"); };
   const renderList = () => {
     $("side").classList.toggle("hide", S.annotations.length === 0 || !S.open);
     $("list").innerHTML = S.annotations.map((a) => {
@@ -717,11 +719,79 @@
 
   // ---------- time-range annotation (keyframe-style: mark start, scrub Studio's
   // own timeline, mark end) ----------
+  // Amber band drawn over Studio's REAL timeline while marking a range.
+  // Anchored to Studio's playhead line (1px, #f02c00) in content-space, so it
+  // survives timeline scrolling; zoom changes are rebased via scrollWidth.
+  let bandRAF = 0, bandCal = null; // { scrollEl, xA, sw0, frozen }
+  const findPlayhead = () => {
+    for (const d of document.querySelectorAll("div")) {
+      const s = d.style;
+      if (s && s.position === "fixed" && s.width === "1px" &&
+        (s.backgroundColor === "rgb(240, 44, 0)" || s.backgroundColor === "#f02c00")) {
+        return d.parentElement;
+      }
+    }
+    return null;
+  };
+  const contentX = (el, scrollEl) =>
+    el.getBoundingClientRect().left - scrollEl.getBoundingClientRect().left + scrollEl.scrollLeft;
+  const startBand = () => {
+    const ph = findPlayhead();
+    const scrollEl = ph && ph.closest(".__remotion-horizontal-scrollbar");
+    if (!ph || !scrollEl) { bandCal = null; return; } // not Studio / timeline hidden: chip only
+    bandCal = { scrollEl, xA: contentX(ph, scrollEl), sw0: scrollEl.scrollWidth, frozen: null };
+    const band = $("tband");
+    const PAD = 16; // Studio's TIMELINE_PADDING
+    const loop = () => {
+      if (!bandCal) return;
+      const sEl = bandCal.scrollEl;
+      const sw = sEl.scrollWidth;
+      if (sw !== bandCal.sw0 && bandCal.sw0 > 32) { // zoom rebase
+        const k = (sw - PAD * 2) / (bandCal.sw0 - PAD * 2);
+        bandCal.xA = PAD + (bandCal.xA - PAD) * k;
+        if (bandCal.frozen != null) bandCal.frozen = PAD + (bandCal.frozen - PAD) * k;
+        bandCal.sw0 = sw;
+      }
+      let xB = bandCal.frozen;
+      if (xB == null) {
+        const phNow = findPlayhead();
+        xB = phNow ? contentX(phNow, sEl) : bandCal.xA;
+      }
+      const r = sEl.getBoundingClientRect();
+      const v1 = r.left + Math.min(bandCal.xA, xB) - sEl.scrollLeft;
+      const v2 = r.left + Math.max(bandCal.xA, xB) - sEl.scrollLeft;
+      const left = Math.max(v1, r.left), right = Math.min(v2, r.right);
+      if (right - left > 0.5) {
+        band.classList.remove("hide");
+        band.style.left = left + "px";
+        band.style.width = right - left + "px";
+        band.style.top = r.top + "px";
+        band.style.height = r.height + "px";
+      } else {
+        band.classList.add("hide");
+      }
+      bandRAF = requestAnimationFrame(loop);
+    };
+    cancelAnimationFrame(bandRAF);
+    loop();
+  };
+  const freezeBand = () => {
+    if (!bandCal) return;
+    const ph = findPlayhead();
+    if (ph) bandCal.frozen = contentX(ph, bandCal.scrollEl);
+  };
+  const stopBand = () => {
+    bandCal = null;
+    cancelAnimationFrame(bandRAF);
+    $("tband").classList.add("hide");
+  };
+
   let rangeTimer = 0;
   const armRange = () => {
     const f = raFrame();
     if (f == null) return toast("Frame unavailable — move the playhead first");
     S.range = { from: f };
+    startBand();
     $("bRange").classList.add("on");
     const chip = $("rchip");
     chip.classList.remove("hide");
@@ -746,6 +816,7 @@
     if (to == null) return toast("Frame unavailable");
     let a = S.range.from, b = to;
     if (b < a) [a, b] = [b, a];
+    freezeBand(); // keep the amber band on the timeline while the panel is open
     cancelRange();
     closePanel(); closeProps(); closeEdit();
     S.rangePending = { from: a, to: b };
@@ -827,7 +898,7 @@
       e.stopImmediatePropagation(); if (S.range) completeRange();
     } else if (e.key === "Escape" && S.open) {
       e.stopImmediatePropagation();
-      if (S.range) cancelRange();
+      if (S.range) { cancelRange(); stopBand(); }
       else if (S.selected) closePanel();
       else toggleOpen(false);
     }
