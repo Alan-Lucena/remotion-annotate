@@ -340,11 +340,11 @@ export const Demo: React.FC = () => {
         {hoverOn && !popup1 && (
           <>
             <div style={{
-              position: "absolute", left: titleCx - 172 - W.x, top: titleY - 12 - W.y, width: 344, height: 74,
+              position: "absolute", left: titleCx - 150 - W.x, top: titleY - 2 - W.y, width: 300, height: 58,
               border: `1.5px solid ${BLUE}`, borderRadius: 8, background: `${BLUE}1c`, opacity: fadeIn(frame, 84),
             }} />
             <div style={{
-              position: "absolute", left: titleCx - 172 - W.x, top: titleY - 48 - W.y, background: INK, color: "#fff",
+              position: "absolute", left: titleCx - 150 - W.x, top: titleY - 42 - W.y, background: INK, color: "#fff",
               fontSize: 13, fontWeight: 500, padding: "6px 11px", borderRadius: 8, opacity: fadeIn(frame, 86),
               boxShadow: "0 8px 24px rgba(0,0,0,.4)",
             }}>
