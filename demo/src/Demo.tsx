@@ -177,15 +177,15 @@ export const Demo: React.FC = () => {
     { f: 52, x: fabPos.x + 26, y: fabPos.y + 26 },       // to FAB
     { f: 72, x: fabPos.x + 26, y: fabPos.y + 26 },
     { f: 92, x: titleCx + 40, y: titleY + 24 },           // hover title
-    { f: 104, x: titleCx - 8, y: titleY + 62 },           // to "+" button
-    { f: 116, x: titleCx - 8, y: titleY + 62 },
-    { f: 150, x: titleCx + 210, y: titleY + 212 },        // to Add btn popup1
-    { f: 164, x: titleCx + 210, y: titleY + 212 },
+    { f: 104, x: titleCx - 46, y: titleY + 60 },          // to "+" button
+    { f: 116, x: titleCx - 46, y: titleY + 60 },
+    { f: 150, x: titleCx + 254, y: titleY + 201 },        // to Add btn popup1
+    { f: 164, x: titleCx + 254, y: titleY + 201 },
     { f: 182, x: barX + 60, y: barY + 18 },               // to ◆ range button
     { f: 216, x: barX + 60, y: barY + 18 },               // wait during scrub
     { f: 222, x: barX + 60, y: barY + 18 },               // click again
-    { f: 252, x: titleCx + 210, y: sceneY + 336 },        // to Add btn popup2
-    { f: 266, x: titleCx + 210, y: sceneY + 336 },
+    { f: 252, x: titleCx + 254, y: sceneY + 325 },        // to Add btn popup2
+    { f: 266, x: titleCx + 254, y: sceneY + 325 },
     { f: 284, x: copyX, y: barY + 18 },                   // to COPY button
     { f: 296, x: copyX, y: barY + 18 },
     { f: 330, x: W.x + W.w - 260, y: W.y + W.h - 160 },   // rest
