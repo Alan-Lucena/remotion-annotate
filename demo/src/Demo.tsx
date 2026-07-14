@@ -174,6 +174,14 @@ export const Demo: React.FC = () => {
   const titleColor = applied ? ORANGE : "#ffffff";
 
   const insertP = applied ? spring({ frame: frame - 382, fps, config: { damping: 14 } }) : 0;
+  // 3rd sequence block: it holds the scene the canvas is showing, so the playhead ends inside it
+  const B3_LEFT = 700 + (10 + RANGE_W + 10 - 160) * insertP;
+  const B3_W = 260;
+  const headX = applied
+    ? interpolate(frame, [386, 408], [150 + playheadPct * TL_W, B3_LEFT + B3_W * 0.5], {
+        extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.inOut(Easing.cubic),
+      })
+    : 150 + playheadPct * TL_W;
   const endBadge = fadeIn(frame, 400, 12);
 
   // ---- cursor path ----
@@ -291,7 +299,7 @@ export const Demo: React.FC = () => {
             </div>
             <div style={{ position: "absolute", left: 150, top: 64, width: 210, height: 24, borderRadius: 5, background: "#1d4ed8" }} />
             <div style={{ position: "absolute", left: 380, top: 64, width: 300 - 150 * insertP, height: 24, borderRadius: 5, background: "#1e40af" }} />
-            <div style={{ position: "absolute", left: 700 + (10 + RANGE_W + 10 - 160) * insertP, top: 64, width: 260, height: 24, borderRadius: 5, background: "#1d4ed8" }} />
+            <div style={{ position: "absolute", left: B3_LEFT, top: 64, width: B3_W, height: 24, borderRadius: 5, background: "#1d4ed8" }} />
             {/* new ROADMAP sequence: inserted on the main row between the 2nd and 3rd blocks */}
             {applied && (
               <div style={{
@@ -306,7 +314,7 @@ export const Demo: React.FC = () => {
             {/* playhead */}
             <div style={{
               position: "absolute", top: 6, bottom: 6, width: 2, background: "#ef4444",
-              left: 150 + playheadPct * TL_W,
+              left: headX,
             }}>
               <div style={{ position: "absolute", top: -1, left: -5, width: 12, height: 10, background: "#ef4444", borderRadius: "3px 3px 6px 6px" }} />
             </div>
