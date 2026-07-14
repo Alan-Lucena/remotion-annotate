@@ -142,7 +142,7 @@ export const Demo: React.FC = () => {
   const fabPos = { x: W.x + W.w - 74, y: W.y + W.h - 78 };
 
   const toolbarIn = spring({ frame: frame - 58, fps, config: { damping: 13 } });
-  const showToolbar = frame >= 58;
+  const showToolbar = frame >= 58 && frame < 378; // closes before the payoff
 
   const hoverOn = frame >= 84 && frame < 170;
   const popup1 = frame >= 112 && frame < 168;
@@ -286,6 +286,18 @@ export const Demo: React.FC = () => {
             <div style={{ position: "absolute", left: 150, top: 64, width: 210, height: 24, borderRadius: 5, background: "#1d4ed8" }} />
             <div style={{ position: "absolute", left: 380, top: 64, width: 300, height: 24, borderRadius: 5, background: "#1e40af" }} />
             <div style={{ position: "absolute", left: 700, top: 64, width: 260, height: 24, borderRadius: 5, background: "#1d4ed8" }} />
+            {/* new ROADMAP sequence: the agent's second change, inserted in the annotated range */}
+            {applied && (
+              <div style={{
+                position: "absolute", top: 92, height: 22, borderRadius: 5, background: "#3b82f6",
+                left: 150 + 0.32 * (W.w - 28 - 150 - 16),
+                width: spring({ frame: frame - 382, fps, config: { damping: 14 } }) * 0.34 * (W.w - 28 - 150 - 16),
+                overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "0 0 0 1.5px #93c5fd55",
+              }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: "#fff", letterSpacing: 2, whiteSpace: "nowrap" }}>ROADMAP</span>
+              </div>
+            )}
             {/* playhead */}
             <div style={{
               position: "absolute", top: 6, bottom: 6, width: 2, background: "#ef4444",
@@ -306,11 +318,11 @@ export const Demo: React.FC = () => {
 
         {/* ------------------------------------------------ annotate overlay bits */}
         {/* FAB */}
-        {frame < 62 && (
+        {(frame < 62 || frame >= 384) && (
           <div style={{
             position: "absolute", left: fabPos.x - W.x, top: fabPos.y - W.y, width: 52, height: 52, borderRadius: 99,
             background: "#111", display: "flex", alignItems: "center", justifyContent: "center",
-            transform: `scale(${Math.max(0, fabIn)})`, boxShadow: "0 10px 30px rgba(0,0,0,.35)",
+            transform: `scale(${frame < 62 ? Math.max(0, fabIn) : spring({ frame: frame - 384, fps, config: { damping: 12 } })})`, boxShadow: "0 10px 30px rgba(0,0,0,.35)",
           }}>
             <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
               <path d="M6 4.5v14l12-7z" fill="#fff" strokeLinejoin="round" strokeWidth={2.5} /><path d="M17.7 5.3l1.65 5.05 5.05 1.65-5.05 1.65-1.65 5.05-1.65-5.05-5.05-1.65 5.05-1.65z" fill="#111" stroke="#111" strokeWidth={7} strokeLinejoin="round" /><path d="M17.7 5.3l1.65 5.05 5.05 1.65-5.05 1.65-1.65 5.05-1.65-5.05-5.05-1.65 5.05-1.65z" fill="#111" stroke="#fff" strokeWidth={1.8} />
