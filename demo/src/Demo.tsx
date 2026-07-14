@@ -168,6 +168,7 @@ export const Demo: React.FC = () => {
   const titleScale = applied ? 1 + 0.25 * spring({ frame: frame - 380, fps, config: { damping: 12 } }) : 1;
   const titleColor = applied ? ORANGE : "#ffffff";
 
+  const insertP = applied ? spring({ frame: frame - 382, fps, config: { damping: 14 } }) : 0;
   const endBadge = fadeIn(frame, 400, 12);
 
   // ---- cursor path ----
@@ -284,18 +285,17 @@ export const Demo: React.FC = () => {
               ))}
             </div>
             <div style={{ position: "absolute", left: 150, top: 64, width: 210, height: 24, borderRadius: 5, background: "#1d4ed8" }} />
-            <div style={{ position: "absolute", left: 380, top: 64, width: 300, height: 24, borderRadius: 5, background: "#1e40af" }} />
-            <div style={{ position: "absolute", left: 700, top: 64, width: 260, height: 24, borderRadius: 5, background: "#1d4ed8" }} />
-            {/* new ROADMAP sequence: the agent's second change, inserted in the annotated range */}
+            <div style={{ position: "absolute", left: 380, top: 64, width: 300 - 160 * insertP, height: 24, borderRadius: 5, background: "#1e40af" }} />
+            <div style={{ position: "absolute", left: 700 + 80 * insertP, top: 64, width: 260, height: 24, borderRadius: 5, background: "#1d4ed8" }} />
+            {/* new ROADMAP sequence: inserted on the main row between the 2nd and 3rd blocks */}
             {applied && (
               <div style={{
-                position: "absolute", top: 92, height: 22, borderRadius: 5, background: "#3b82f6",
-                left: 150 + 0.32 * (W.w - 28 - 150 - 16),
-                width: spring({ frame: frame - 382, fps, config: { damping: 14 } }) * 0.34 * (W.w - 28 - 150 - 16),
+                position: "absolute", top: 64, height: 24, borderRadius: 5, background: "#3b82f6",
+                left: 530, width: 240 * insertP,
                 overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center",
                 boxShadow: "0 0 0 1.5px #93c5fd55",
               }}>
-                <span style={{ fontSize: 10, fontWeight: 700, color: "#fff", letterSpacing: 2, whiteSpace: "nowrap" }}>ROADMAP</span>
+                <span style={{ fontSize: 10, fontWeight: 700, color: "#fff", letterSpacing: 2, whiteSpace: "nowrap", opacity: insertP }}>ROADMAP</span>
               </div>
             )}
             {/* playhead */}
