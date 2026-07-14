@@ -179,7 +179,7 @@
     .prow{display:flex;justify-content:flex-end;gap:8px;margin-top:10px;align-items:center}
     .ghost{background:none;border:none;color:#9ca3af;font-size:14px;cursor:pointer;padding:8px 10px}
     .primary{background:var(--mk);border:none;color:#fff;font-size:14px;font-weight:600;padding:8px 18px;border-radius:10px;cursor:pointer}
-    .bar{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:2px;background:#1c1c1e;border-radius:16px;padding:7px 9px;pointer-events:auto;box-shadow:0 0 0 1px rgba(255,255,255,.06),0 16px 50px rgba(0,0,0,.5),0 0 0 4px color-mix(in srgb,var(--mk) 28%,transparent)}
+    .bar{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:2px;background:#1c1c1e;border-radius:16px;padding:7px 9px;pointer-events:auto;box-shadow:0 0 0 1px rgba(255,255,255,.06),0 16px 50px rgba(0,0,0,.5),0 0 0 4px color-mix(in srgb,var(--mk) 28%,transparent)}
     .ic{width:38px;height:38px;border:none;background:none;color:#a1a1a6;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer}
     .ic:hover{background:#2c2c2e;color:#fff}.ic.on{color:#fff;background:#2c2c2e}
     .sep{width:1px;height:22px;background:#3a3a3c;margin:0 4px}
@@ -215,8 +215,8 @@
     .item .d{float:right;color:#6b7280;cursor:pointer}
     .item .e{float:right;color:#9ca3af;cursor:pointer;margin-right:10px}.item .e:hover{color:#fff}
     .toast{position:fixed;bottom:82px;left:50%;transform:translateX(-50%);background:#111;color:#fff;font-size:13px;font-weight:600;padding:9px 16px;border-radius:11px;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.5);border:1px solid #2c2c2e}
-    .rchip{position:fixed;bottom:112px;left:50%;transform:translateX(-50%);background:#111;color:#f59e0b;font-size:13px;font-weight:700;font-family:ui-monospace,monospace;padding:8px 14px;border-radius:11px;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.5);border:1px solid #f59e0b55}
-    .tband{position:fixed;background:rgba(245,158,11,.15);border:1.5px dashed #f59e0b;box-sizing:border-box;pointer-events:none;z-index:30}
+    .rchip{position:fixed;bottom:112px;left:50%;transform:translateX(-50%);z-index:45;background:#111;color:#f59e0b;font-size:13px;font-weight:700;font-family:ui-monospace,monospace;padding:8px 14px;border-radius:11px;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.5);border:1px solid #f59e0b55}
+    .tband{position:fixed;background:rgba(245,158,11,.15);border:1.5px dashed #f59e0b;box-sizing:border-box;pointer-events:none;z-index:1}
     .dot{width:8px;height:8px;border-radius:50%;background:#ef4444;margin:0 4px;flex:none;box-shadow:0 0 6px #ef4444}
     .dot.on{background:#22c55e;box-shadow:0 0 6px #22c55e}
     .props{position:fixed;width:30px;height:30px;border-radius:50%;color:#fff;border:2px solid #fff;display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:auto;box-shadow:0 4px 14px rgba(0,0,0,.35);background:#7c3aed}
