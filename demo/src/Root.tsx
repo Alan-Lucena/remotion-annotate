@@ -10,7 +10,7 @@ export const Root: React.FC = () => (
       width={1280}
       height={800}
       fps={30}
-      durationInFrames={400}
+      durationInFrames={430}
     />
     <Composition
       id="MotionCompare"

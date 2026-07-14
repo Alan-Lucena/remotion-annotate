@@ -67,19 +67,36 @@ const Cursor: React.FC<{ x: number; y: number; clickAt: number[]; frame: number 
   );
 };
 
-const Marker: React.FC<{ n: number; x: number; y: number; born: number; done: number; frame: number; fps: number }> = ({ n, x, y, born, done, frame, fps }) => {
-  if (frame < born) return null;
-  const s = spring({ frame: frame - born, fps, config: { damping: 11 } });
-  const isDone = frame >= done;
+// Annotations sidebar card (matches the real overlay's top-right card)
+const SideCard: React.FC<{ frame: number; fps: number; item2At: number; clearAt: number }> = ({ frame, fps, item2At, clearAt }) => {
+  if (frame < 170) return null;
+  const enter = spring({ frame: frame - 170, fps, config: { damping: 14 } });
+  const out = interpolate(frame, [clearAt, clearAt + 12], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const item2 = interpolate(frame, [item2At, item2At + 8], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   return (
     <div style={{
-      position: "absolute", left: x, top: y, width: 34, height: 34, borderRadius: 99,
-      background: isDone ? "#22c55e" : BLUE, color: "#fff", display: "flex", alignItems: "center",
-      justifyContent: "center", fontSize: 17, fontWeight: 700, transform: `scale(${s})`,
-      border: "2.5px solid #fff", boxShadow: "0 4px 14px rgba(0,0,0,.35)", zIndex: 60,
-      fontFamily: "Inter, sans-serif",
+      position: "absolute", right: 18, top: 74, width: 252, borderRadius: 13, background: INK,
+      boxShadow: "0 16px 40px rgba(0,0,0,.45)", zIndex: 70, overflow: "hidden",
+      opacity: Math.min(enter, out), transform: `translateX(${8 * (1 - enter)}px)`,
+      color: "#e5e7eb",
     }}>
-      {isDone ? "✓" : n}
+      <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 13px", borderBottom: "1px solid #2c2c2e", fontSize: 12.5, fontWeight: 700 }}>
+        Annotations <span style={{ color: "#9ca3af", fontWeight: 400 }}>Clear</span>
+      </div>
+      <div style={{ padding: "9px 13px", borderBottom: "1px solid #232325" }}>
+        <div style={{ fontSize: 10.5, fontFamily: "ui-monospace, monospace", color: "#9ca3af" }}>
+          <span style={{ color: BLUE }}>◷ 96</span> · Scene.tsx:12:4
+        </div>
+        <div style={{ fontSize: 11.5, marginTop: 3 }}>Make this orange and bigger</div>
+      </div>
+      {item2 > 0 && (
+        <div style={{ padding: "9px 13px", opacity: item2 }}>
+          <div style={{ fontSize: 10.5, fontFamily: "ui-monospace, monospace", color: "#9ca3af" }}>
+            <span style={{ color: AMBER }}>◷ 96→210</span> · timeline
+          </div>
+          <div style={{ fontSize: 11.5, marginTop: 3 }}>Add a ROADMAP scene in this range</div>
+        </div>
+      )}
     </div>
   );
 };
@@ -137,15 +154,21 @@ export const Demo: React.FC = () => {
   const popup2 = frame >= 224 && frame < 272;
   const msg2 = "Add a ROADMAP scene in this range";
 
-  const claudeIn = spring({ frame: frame - 278, fps, config: { damping: 15 } });
-  const showClaude = frame >= 278 && frame < 372;
-  const claudeOut = frame >= 358 ? interpolate(frame, [358, 372], [1, 0], { extrapolateRight: "clamp" }) : 1;
+  // copy button (5th icon in the toolbar pill): the real handoff to the agent
+  const copyX = barX + 9 + 17 + 4 * 36;
+  const copyClickAt = 288;
+  const copyActive = frame >= copyClickAt && frame < 306;
+  const copyToast = frame >= copyClickAt + 2 && frame < 324;
 
-  const applied = frame >= 352;
-  const titleScale = applied ? 1 + 0.25 * spring({ frame: frame - 352, fps, config: { damping: 12 } }) : 1;
+  const claudeIn = spring({ frame: frame - 304, fps, config: { damping: 15 } });
+  const showClaude = frame >= 304 && frame < 400;
+  const claudeOut = frame >= 386 ? interpolate(frame, [386, 400], [1, 0], { extrapolateRight: "clamp" }) : 1;
+
+  const applied = frame >= 380;
+  const titleScale = applied ? 1 + 0.25 * spring({ frame: frame - 380, fps, config: { damping: 12 } }) : 1;
   const titleColor = applied ? ORANGE : "#ffffff";
 
-  const endBadge = fadeIn(frame, 372, 12);
+  const endBadge = fadeIn(frame, 400, 12);
 
   // ---- cursor path ----
   const cur = kf(frame, [
@@ -163,9 +186,11 @@ export const Demo: React.FC = () => {
     { f: 222, x: barX + 60, y: barY + 18 },               // click again
     { f: 252, x: titleCx + 210, y: sceneY + 336 },        // to Add btn popup2
     { f: 266, x: titleCx + 210, y: sceneY + 336 },
-    { f: 300, x: W.x + W.w - 260, y: W.y + W.h - 160 },   // rest
+    { f: 284, x: copyX, y: barY + 18 },                   // to COPY button
+    { f: 296, x: copyX, y: barY + 18 },
+    { f: 330, x: W.x + W.w - 260, y: W.y + W.h - 160 },   // rest
   ]);
-  const clicks = [54, 110, 162, 186, 220, 264];
+  const clicks = [54, 110, 162, 186, 220, 264, copyClickAt];
 
   return (
     <AbsoluteFill style={{ background: "#f3f1ec", fontFamily: "Inter, system-ui, sans-serif" }}>
@@ -305,7 +330,7 @@ export const Demo: React.FC = () => {
             <ToolIcon d="M12 3l7 9-7 9-7-9z" active={rangeArmed} />
             <ToolIcon d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7ZM12 9a3 3 0 100 6 3 3 0 000-6" />
             <ToolIcon d="M9 14 4 9l5-5M4 9h11a5 5 0 0 1 0 10H9" />
-            <ToolIcon d="M9 9h12v12H9zM5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            <ToolIcon d="M9 9h12v12H9zM5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" active={copyActive} />
             <div style={{ width: 8, height: 8, borderRadius: 99, background: "#22c55e", margin: "0 6px", boxShadow: "0 0 6px #22c55e" }} />
             <ToolIcon d="M18 6 6 18M6 6l12 12" />
           </div>
@@ -384,15 +409,25 @@ export const Demo: React.FC = () => {
         )}
 
         {/* markers */}
-        <Marker n={1} x={titleCx - 196 - W.x} y={titleY - 26 - W.y} born={168} done={340} frame={frame} fps={fps} />
-        <Marker n={2} x={W.w - 320} y={W.h - 148} born={270} done={348} frame={frame} fps={fps} />
+        <SideCard frame={frame} fps={fps} item2At={270} clearAt={384} />
+
+        {/* copy-to-clipboard toast (the real agent handoff) */}
+        {copyToast && (
+          <div style={{
+            position: "absolute", left: W.w / 2 - 152, top: barY - W.y - 46, background: "#111", color: "#fff",
+            fontSize: 13.5, fontWeight: 600, padding: "9px 16px", borderRadius: 11, border: "1px solid #2c2c2e",
+            opacity: fadeIn(frame, copyClickAt + 2, 5), zIndex: 75,
+          }}>
+            Markdown copied (2) — paste to your agent
+          </div>
+        )}
 
         {/* toast after apply */}
-        {applied && frame < 384 && (
+        {applied && frame < 412 && (
           <div style={{
             position: "absolute", left: W.w / 2 - 96, top: barY - W.y - 46, background: "#111", color: "#fff",
             fontSize: 13.5, fontWeight: 600, padding: "9px 16px", borderRadius: 11, border: "1px solid #2c2c2e",
-            opacity: fadeIn(frame, 352, 6),
+            opacity: fadeIn(frame, 380, 6),
           }}>
             2 annotations applied ✓
           </div>
@@ -425,13 +460,14 @@ export const Demo: React.FC = () => {
               </div>
             </div>
             <div style={{ marginTop: 20, fontSize: 13.5, lineHeight: 1.9 }}>
-              {frame >= 296 && <div>## Annotations (2)</div>}
-              {frame >= 308 && <div style={{ marginTop: 8 }}>### 1. heading "Ship faster." · Scene.tsx:12:4</div>}
-              {frame >= 314 && <div style={{ color: "#7a756a" }}>Make this orange and bigger</div>}
-              {frame >= 326 && <div style={{ marginTop: 8 }}>### 2. frames 96–210</div>}
-              {frame >= 332 && <div style={{ color: "#7a756a" }}>Add a ROADMAP scene in this range</div>}
-              {frame >= 344 && <div style={{ marginTop: 10, color: "#16a34a" }}>✓ Applied 2 changes to Scene.tsx</div>}
-              {frame >= 296 && frame < 344 && <span style={{ background: "#b9b3a6", color: "transparent" }}>▮</span>}
+              {frame >= 316 && <div style={{ color: "#9c968a" }}>&gt; pasted from clipboard</div>}
+              {frame >= 322 && <div style={{ marginTop: 6 }}>## Annotations (2)</div>}
+              {frame >= 332 && <div style={{ marginTop: 8 }}>### 1. heading "Ship faster." · Scene.tsx:12:4</div>}
+              {frame >= 338 && <div style={{ color: "#7a756a" }}>Make this orange and bigger</div>}
+              {frame >= 348 && <div style={{ marginTop: 8 }}>### 2. frames 96–210</div>}
+              {frame >= 354 && <div style={{ color: "#7a756a" }}>Add a ROADMAP scene in this range</div>}
+              {frame >= 372 && <div style={{ marginTop: 10, color: "#16a34a" }}>✓ Applied 2 changes to Scene.tsx</div>}
+              {frame >= 316 && frame < 372 && <span style={{ background: "#b9b3a6", color: "transparent" }}>▮</span>}
             </div>
           </div>
         </div>
