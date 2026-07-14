@@ -264,17 +264,15 @@ export const Demo: React.FC = () => {
             borderRadius: 10, overflow: "hidden", background: "radial-gradient(circle at 30% 20%, #1a2340 0%, #0b0d12 62%)",
             boxShadow: "0 10px 40px rgba(0,0,0,.5)",
           }}>
-            <div style={{ position: "absolute", left: 0, right: 0, top: 74, textAlign: "center" }}>
-              <div style={{ fontSize: 15, letterSpacing: 5, color: "#5eead4", fontWeight: 600, marginBottom: 12 }}>MY LAUNCH VIDEO</div>
+            <div style={{ position: "absolute", left: 0, right: 0, top: 104, textAlign: "center" }}>
               <div style={{
                 fontSize: 52, fontWeight: 800, color: titleColor, transform: `scale(${titleScale})`,
                 transformOrigin: "center", lineHeight: 1.05,
               }}>
                 Ship faster.
               </div>
-              <div style={{ fontSize: 19, color: "#94a3b8", marginTop: 14 }}>Videos in React.</div>
               <div style={{
-                margin: "22px auto 0", width: 132, height: 38, borderRadius: 10, background: BLUE,
+                margin: "34px auto 0", width: 132, height: 38, borderRadius: 10, background: BLUE,
                 color: "#fff", fontSize: 15, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center",
               }}>
                 Get started
